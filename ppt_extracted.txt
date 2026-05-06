@@ -1,0 +1,156 @@
+﻿=== SLIDE 1 ===
+Layer-wise Analysis of Feature Evolution in Convolutional Neural Networks
+Understanding Feature Representation in CNNs
+Aditya Arasamangalam
+Course: ReU
+Guide: Sunil Gurlahosur
+
+=== SLIDE 2 ===
+Motivation
+Accuracy vs Interpretability
+CNNs achieve high accuracy but lack interpretability
+Black Box Problem
+Internal feature learning is not well understood
+Output-Centric View
+Most work focuses on final outputs, not intermediate layers
+Trust & Explainability
+Understanding feature evolution improves trust in models
+
+=== SLIDE 3 ===
+Problem Statement
+Research Gap
+Lack of understanding of layer-wise feature behavior and how dataset properties influence CNN learning dynamics
+Research Question
+How do features evolve across convolution layers and how do dataset properties influence this evolution?
+
+=== SLIDE 4 ===
+Research Objectives
+1
+Analyze feature maps across convolution layers
+2
+Quantify activation statistics (mean, variance, sparsity)
+3
+Study hierarchical feature learning patterns
+4
+Compare behavior across multiple datasets
+5
+Link dataset properties to representation learning
+
+=== SLIDE 5 ===
+Literature Survey
+PAGE 1 OF 2
+1
+Neural Collapse
+   Liu & Qin, 2025
+This work demonstrates that deep-layer feature representations collapse into tightly packed, class-wise clusters as training progresses. These structured geometric arrangements in the final layers indicate that the network has learned highly discriminative, compact representations. The phenomenon is known as Neural Collapse (NC) and provides strong evidence that CNNs develop structured internal representations, rather than arbitrary mappings. This is directly relevant to our study of layer-wise feature evolution.
+2
+Debiased Learning via Neural Collapse
+   Wang et al., 2024
+This paper investigates how the geometry of learned feature representations in deep networks directly influences learning dynamics and model fairness. The authors show that biased representations in intermediate layers contribute to model bias in predictions, and that explicitly controlling representation geometry during training can reduce this bias. This is relevant to understanding how feature structure across CNN layers links to classification behavior and fairness.
+
+=== SLIDE 6 ===
+Dataset Selection & Analysis
+Food-101
+Texture-heavy
+Noisy backgrounds
+Stanford Cars
+Fine-grained
+Geometry-dominant
+FGVC Aircraft
+Structure-heavy
+Spatial features
+Oxford Flowers
+Balanced
+Optimal for analysis
+
+=== SLIDE 7 ===
+Dataset Selection & Analysis
+
+=== SLIDE 8 ===
+Model Architecture: ResNet-18
+Why ResNet-18?
+Residual connections: y = F(x) + x
+Prevents vanishing gradient problem
+Preserves feature information flow
+Enables stable feature propagation
+Comparison
+VGG-16
+No residuals
+AlexNet
+Limited depth
+DenseNet
+Complex connections
+
+=== SLIDE 10 ===
+Proposed Solution Framework
+A 5-stage horizontal pipeline for layer-wise CNN feature analysis
+1
+Feature Extraction
+ResNet-18 pretrained on ImageNet
+2
+Statistical Analysis
+Mean, variance & sparsity per layer
+3
+Cross-Dataset Study
+Flowers, Food-101, Cars, Aircraft
+4
+Neural Collapse
+Dimensionality reduction & geometry
+5
+Insights & Interpretability
+Heatmaps, feature visualization & design
+STAGE DETAILS
+Stage 1
+Load ResNet-18. Hook intermediate layers. Extract feature maps for each image.
+Stage 2
+Compute per-layer mean, variance, and sparsity. Plot activation statistics across depth.
+Stage 3
+Repeat Stages 1-2 on all 4 datasets. Compare patterns across datasets.
+Stage 4
+Apply PCA/t-SNE to feature vectors. Analyse neural collapse and cluster geometry.
+Stage 5
+Generate heatmaps & Grad-CAM. Motivate design choices from insights.
+Goal:  
+Understand CNN behavior across layers — not just train models for final accuracy
+
+=== SLIDE 11 ===
+Experiments & Expected Results
+Feature Evolution Across Layers
+Early Layers
+Detect edges & simple patterns
+Mid Layers
+Capture textures & color gradients
+Deep Layers
+Learn semantic representations
+Dataset Dependency
+Food-101: Strong early-layer response (texture features)
+Cars: Deep-layer dependence (fine-grained geometry)
+Flowers: Balanced activation across layers
+
+=== SLIDE 12 ===
+Conclusion & Future Work
+Key Contributions
+Developed layer-wise analysis framework
+Demonstrated dataset-CNN interaction
+Improved CNN interpretability
+Future Work
+Neural collapse analysis in detail
+Early exiting strategies for efficiency
+Feature clustering visualization (t-SNE, PCA)
+Understanding how CNNs learn across layers enables better model design, improved interpretability, and more trustworthy AI systems.
+
+=== SLIDE 13 ===
+Literature Survey
+PAGE 2 OF 2
+3
+Geometric Complexity
+   Munn et al., 2024
+This paper introduces geometric complexity as a quantitative measure to characterize how dataset structure affects the feature learning dynamics in neural networks. The authors show that datasets with higher geometric complexity lead to richer and more varied feature evolution across CNN layers. This provides a principled explanation for why different datasets produce different internal representations, which is a core question in our cross-dataset analysis framework.
+4
+Decision Boundary / Logits
+   Hasegawa & Sato, 2024
+This work examines the connection between internal feature representations learned by a CNN and the resulting decision boundaries formed in the logit space. The authors demonstrate that features at different layers shape how clearly classes are separated at classification time. Understanding this link is essential for our research, which aims to connect layer-wise feature statistics to model classification behavior and interpretability.
+Background:  
+General CNN Feature Hierarchy — CNNs learn hierarchical features from low-level edges to high-level semantic representations across layers.
+
+
