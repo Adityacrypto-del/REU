@@ -39,6 +39,7 @@ def evaluate(model, dataloader, device, class_priors=None, mla_tau=1.0):
     for inputs, labels in dataloader:
         inputs, labels = inputs.to(device), labels.to(device)
         logits, _ = model(inputs)
+        logits = list(logits)
         total += labels.size(0)
 
         for i in range(num_exits):
