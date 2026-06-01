@@ -18,7 +18,12 @@ def parse_args():
 
 def main():
     args = parse_args()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
     print("=" * 70)
     print(f"Starting Experiments on Device: {device}")
     print(f"Target Dataset: {args.dataset}")

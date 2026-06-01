@@ -54,9 +54,10 @@ def get_dataloaders(dataset_name='flowers102', batch_size=32, root_dir='./data')
         # Fallback to uniform priors if targets aren't easily accessible
         class_priors = torch.ones(num_classes) / num_classes
 
-    # Note: num_workers=0 is safer for Windows to avoid multi-processing bugs initially
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+    # pin_memory only benefits CUDA; MPS doesn't support it
+    use_pin = torch.cuda.is_available()
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=use_pin)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=use_pin)
 
     return train_loader, val_loader, class_priors
 
