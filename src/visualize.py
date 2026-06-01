@@ -24,7 +24,7 @@ plt.rcParams.update({
     'legend.fontsize': 9,
     'figure.dpi': 150,
     'savefig.dpi': 150,
-    'savefig.bbox_inches': 'tight',
+    'savefig.bbox': 'tight',
 })
 
 LAYER_COLORS = ['#e74c3c', '#e67e22', '#2ecc71', '#3498db']
