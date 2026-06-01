@@ -293,11 +293,12 @@ def main():
 
     for label in range(min(10, NUM_CLASSES)):
         plt.figure()
-        for epoch in range(NUM_EPOCHS):
-            weights = all_weights[epoch].get('classifier.weight')
+        for epoch_idx in range(len(all_weights)):
+            weights = all_weights[epoch_idx].get('classifier.weight')
             if weights is None:
                 continue
-            plt.plot(weights[label], label=f'Epoch {epoch+1}')
+            epoch_num = start_epoch + epoch_idx
+            plt.plot(weights[label], label=f'Epoch {epoch_num}')
         plt.xlabel('Weight Dimension')
         plt.ylabel('Weight Value')
         plt.title(f'Weight Evolution for Label {label}')
@@ -309,11 +310,12 @@ def main():
     for layer in range(4):
         plt.figure()
         for epoch_idx in range(len(all_kde_densities)):
+            epoch_num = start_epoch + epoch_idx
             plt.hist(
                 all_kde_densities[epoch_idx][layer],
                 bins=50,
                 alpha=0.4,
-                label=f'Epoch {epoch_idx+1}',
+                label=f'Epoch {epoch_num}',
                 density=True,
             )
         plt.xlabel('Density Value')
