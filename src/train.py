@@ -151,7 +151,7 @@ def main():
 
     NUM_CLASSES = 102
     BATCH_SIZE = 32
-    NUM_EPOCHS = 50
+    NUM_EPOCHS = 100
     LR = 1e-3
     CHECKPOINT_EVERY = 1
     NC_METRICS_EVERY = 1
@@ -192,9 +192,24 @@ def main():
         checkpoint = torch.load(args.resume, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        if checkpoint.get('scheduler_state_dict'):
-            scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
+        remaining_epochs = NUM_EPOCHS - checkpoint['epoch']
+
+        if remaining_epochs > 0 and remaining_epochs != (NUM_EPOCHS - 1):
+            # Training was extended (e.g. 50→100). The old scheduler completed
+            # its full cosine cycle (LR≈0). Create a fresh cosine schedule for
+            # the remaining epochs so LR ramps from LR_max → 0 again.
+            # First, reset optimizer LR (it's ≈0 from the old schedule)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = LR
+                param_group['initial_lr'] = LR
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(
+                optimizer, T_max=remaining_epochs
+            )
+            print(f"   🔄 Fresh cosine LR schedule: {remaining_epochs} epochs (LR: {LR} → 0)")
+        elif checkpoint.get('scheduler_state_dict'):
+            scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+
         print(f"   Loaded model from epoch {checkpoint['epoch']}")
         print(f"   Resuming training from epoch {start_epoch}\n")
 

@@ -1,8 +1,23 @@
+# ===== Datasets (large, downloadable) =====
+data/
 src/data/
+
+# ===== Model checkpoints & weight snapshots (~17GB) =====
 src/results/checkpoints/*.pt
 src/results/checkpoints/*.npz
-src/results/all_*.npy
-*.tgz
+
+# ===== Large aggregated weight arrays (~2GB) =====
+src/results/all_weights.npy
+
+# ===== Python cache =====
 __pycache__/
 *.pyc
+*.pyo
+
+# ===== OS files =====
 .DS_Store
+Thumbs.db
+
+# ===== Archives =====
+*.tgz
+*.tar.gz

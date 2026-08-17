@@ -49,7 +49,19 @@ def main():
 
     # 3. Evaluate and Measure Bias & Early Exit Confidence
     print("\n[3] Running Main Evaluation (Bias, MLA, Confidence)...")
+    from evaluate import evaluate, simulate_early_exit
+    from visualize import plot_confidence_histograms, plot_exit_sweep
+    
+    accuracies, confidences, corrects, preds, labels, class_wise_acc = evaluate(
+        model, val_loader, device, class_priors=class_priors if args.mla_tau > 0 else None
+    )
     print_evaluation_report(model, val_loader, device, class_priors=class_priors if args.mla_tau > 0 else None)
+    
+    print("\nGenerating evaluation plots (confidence histograms and exit sweep)...")
+    plot_confidence_histograms(confidences, corrects, save_dir='./results/plots')
+    thresholds_sweep = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
+    exit_results_sweep = simulate_early_exit(confidences, corrects, thresholds_sweep)
+    plot_exit_sweep(exit_results_sweep, save_dir='./results/plots')
 
     # 4. OOD Detection Evaluation
     print("\n[4] Running OOD Detection (Liu & Qin 2025)...")
