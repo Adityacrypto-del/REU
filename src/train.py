@@ -145,25 +145,34 @@ def get_device():
 
 def main():
     parser = argparse.ArgumentParser(description="Train EarlyExitResNet with NC metrics")
+    parser.add_argument('--dataset', type=str, default='flowers102', choices=['flowers102', 'cifar10'],
+                        help="Dataset to train on ('flowers102' or 'cifar10')")
+    parser.add_argument('--epochs', type=int, default=100, help="Number of training epochs")
+    parser.add_argument('--batch_size', type=int, default=32, help="Batch size")
+    parser.add_argument('--lr', type=float, default=1e-3, help="Learning rate")
+    parser.add_argument('--results_dir', type=str, default=None, help="Directory to save results")
     parser.add_argument('--resume', type=str, default=None,
                         help="Path to checkpoint .pt file to resume training from")
     args = parser.parse_args()
 
-    NUM_CLASSES = 102
-    BATCH_SIZE = 32
-    NUM_EPOCHS = 100
-    LR = 1e-3
+    DATASET_NAME = args.dataset
+    NUM_EPOCHS = args.epochs
+    BATCH_SIZE = args.batch_size
+    LR = args.lr
+    RESULTS_DIR = args.results_dir if args.results_dir else f'./results/{DATASET_NAME}'
     CHECKPOINT_EVERY = 1
     NC_METRICS_EVERY = 1
-    RESULTS_DIR = './results'
 
     device = get_device()
     print(f"Using device: {device}")
+    print(f"Target Dataset: {DATASET_NAME}")
     print(f"Configuration: epochs={NUM_EPOCHS}, batch_size={BATCH_SIZE}, lr={LR}")
+    print(f"Results Directory: {RESULTS_DIR}")
     print(f"NC metrics computed every {NC_METRICS_EVERY} epochs\n")
 
-    train_loader, val_loader, class_priors = get_dataloaders(batch_size=BATCH_SIZE)
-    print(f"  Train batches: {len(train_loader)} | Val batches: {len(val_loader)}\n")
+    train_loader, val_loader, class_priors = get_dataloaders(dataset_name=DATASET_NAME, batch_size=BATCH_SIZE)
+    NUM_CLASSES = len(class_priors)
+    print(f"  Num Classes: {NUM_CLASSES} | Train batches: {len(train_loader)} | Val batches: {len(val_loader)}\n")
 
     model = EarlyExitResNet(num_classes=NUM_CLASSES).to(device)
 

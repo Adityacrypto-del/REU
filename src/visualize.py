@@ -326,6 +326,139 @@ def plot_nc_vs_exit_accuracy(nc_history, val_accs_history, save_dir='./results/p
     print(f"  Saved: {path}")
 
 
+def plot_geometric_complexity_comparison(flowers_history, cifar_history, save_dir='./results/plots'):
+    """
+    Paper 4 (Munn et al. 2024): Geometric Complexity in Transfer Learning.
+    Compares NC1 and NC4 evolution between Flowers-102 (high complexity, 102 classes)
+    and CIFAR-10 (low complexity, 10 classes).
+    """
+    os.makedirs(save_dir, exist_ok=True)
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig.suptitle('Geometric Complexity Impact on Neural Collapse (Flowers-102 vs CIFAR-10)',
+                 fontsize=14, fontweight='bold')
+
+    fl_nc = flowers_history.get('nc_metrics', [])
+    cf_nc = cifar_history.get('nc_metrics', [])
+
+    if not fl_nc or not cf_nc:
+        print("  ⚠️ Skipping geometric complexity plot: NC history missing for one or both datasets")
+        return
+
+    fl_epochs = [rec['epoch'] for rec in fl_nc]
+    fl_nc1_l4 = [rec['layers'][3]['nc1'] for rec in fl_nc]
+    fl_nc4_l4 = [rec['layers'][3]['nc4'] for rec in fl_nc]
+
+    cf_epochs = [rec['epoch'] for rec in cf_nc]
+    cf_nc1_l4 = [rec['layers'][3]['nc1'] for rec in cf_nc]
+    cf_nc4_l4 = [rec['layers'][3]['nc4'] for rec in cf_nc]
+
+    # NC1 comparison
+    ax = axes[0]
+    ax.plot(fl_epochs, fl_nc1_l4, 'o-', color='#e74c3c', label='Flowers-102 (Complex, 102 classes)', linewidth=2)
+    ax.plot(cf_epochs, cf_nc1_l4, 's-', color='#3498db', label='CIFAR-10 (Simple, 10 classes)', linewidth=2)
+    ax.set_title('NC1 Within-Class Variability (Layer 4)')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Tr(Sw) / Tr(Sb) (log scale)')
+    ax.set_yscale('log')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    # NC4 comparison
+    ax = axes[1]
+    ax.plot(fl_epochs, fl_nc4_l4, 'o-', color='#e74c3c', label='Flowers-102 (Complex, 102 classes)', linewidth=2)
+    ax.plot(cf_epochs, cf_nc4_l4, 's-', color='#3498db', label='CIFAR-10 (Simple, 10 classes)', linewidth=2)
+    ax.set_title('NC4 Nearest-Class-Center Accuracy (Layer 4)')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('NCC Accuracy')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    path = os.path.join(save_dir, 'geometric_complexity_comparison.png')
+    plt.savefig(path)
+    plt.close()
+    print(f"  Saved: {path}")
+
+
+def plot_ood_auroc_by_layer(ood_results, save_dir='./results/plots'):
+    """
+    Paper 1 (Liu & Qin 2025): Distance-based OOD Detection across Exits.
+    Plots AUROC and FPR@95 across layer depth (Exits 1-4).
+    """
+    os.makedirs(save_dir, exist_ok=True)
+
+    layers = [res['layer'] for res in ood_results]
+    aurocs = [res['auroc'] for res in ood_results]
+    fpr95s = [res['fpr95'] for res in ood_results]
+
+    fig, ax1 = plt.subplots(figsize=(8, 5))
+
+    color = '#2ecc71'
+    ax1.set_xlabel('Exit Layer Depth')
+    ax1.set_ylabel('OOD AUROC (Higher = Better)', color=color)
+    ax1.plot(layers, aurocs, 'o-', color=color, linewidth=2.5, markersize=8, label='AUROC')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.set_ylim(0.4, 1.02)
+    ax1.set_xticks(layers)
+    ax1.set_xticklabels([f'Exit {l} (Layer {l})' for l in layers])
+    ax1.grid(True, alpha=0.3)
+
+    ax2 = ax1.twinx()
+    color = '#e74c3c'
+    ax2.set_ylabel('FPR@95 (Lower = Better)', color=color)
+    ax2.plot(layers, fpr95s, 's--', color=color, linewidth=2.5, markersize=8, label='FPR@95')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.set_ylim(-0.02, 1.02)
+
+    plt.title('OOD Detection Performance across Exit Layers (Liu & Qin 2025)', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    path = os.path.join(save_dir, 'ood_auroc_layerwise.png')
+    plt.savefig(path)
+    plt.close()
+    print(f"  Saved: {path}")
+
+
+def plot_mla_sweep(mla_sweep_results, save_dir='./results/plots'):
+    """
+    Paper 4 (Hasegawa & Sato 2024): Multiplicative Logit Adjustment.
+    Plots validation accuracy and class-wise accuracy variance across tau values per exit.
+    """
+    os.makedirs(save_dir, exist_ok=True)
+
+    taus = sorted(mla_sweep_results.keys())
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig.suptitle('Multiplicative Logit Adjustment (MLA) Sweep across Exits', fontsize=14, fontweight='bold')
+
+    # 1. Accuracy vs Tau per exit
+    ax = axes[0]
+    for i in range(4):
+        accs = [mla_sweep_results[t]['accuracies'][i] for t in taus]
+        ax.plot(taus, accs, 'o-', color=LAYER_COLORS[i], label=LAYER_LABELS[i], linewidth=2)
+    ax.set_xlabel('MLA Tau (Logit Scaling Factor)')
+    ax.set_ylabel('Validation Accuracy')
+    ax.set_title('Exit Accuracy vs Logit Adjustment Tau')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    # 2. Class Variance vs Tau per exit (Bias indicator)
+    ax = axes[1]
+    for i in range(4):
+        variances = [mla_sweep_results[t]['class_variances'][i] for t in taus]
+        ax.plot(taus, variances, 's--', color=LAYER_COLORS[i], label=LAYER_LABELS[i], linewidth=2)
+    ax.set_xlabel('MLA Tau (Logit Scaling Factor)')
+    ax.set_ylabel('Class-wise Accuracy Variance (Lower = Fairer)')
+    ax.set_title('Class Accuracy Variance vs Tau')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    path = os.path.join(save_dir, 'mla_tau_sweep.png')
+    plt.savefig(path)
+    plt.close()
+    print(f"  Saved: {path}")
+
+
 def generate_all_plots_from_history(history_path, save_dir='./results/plots'):
     """
     Load a saved history JSON and generate all plots.
