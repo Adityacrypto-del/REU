@@ -184,46 +184,61 @@ def compute_entropy(model, dataloader, device):
     return entropies
 
 
+def compute_fpr95(score_in, score_out):
+    """
+    Compute False Positive Rate at 95% True Positive Rate (FPR@95).
+    Higher similarity score = in-distribution.
+    """
+    score_in = np.sort(score_in)
+    threshold = score_in[int(0.05 * len(score_in))]
+    fpr = np.mean(score_out >= threshold)
+    return float(fpr)
+
+
 @torch.no_grad()
 def evaluate_ood_detection(model, in_loader, out_loader, device):
     """
     Paper 1: OOD Detection via Neural Collapse (Liu & Qin 2025)
-    Calculates the feature distance to the nearest class center.
-    In a strong NC state, ID data is very close to centers, while OOD is far.
+    Calculates feature distance to nearest class centers and computes AUROC & FPR@95 across layers.
     """
+    from sklearn.metrics import roc_auc_score
     from feature_extractor import extract_all_features, get_exit_classifier_weights
     
-    # 1. Get class centers from the classifier weights (NC3 alignment)
     classifier_weights = get_exit_classifier_weights(model)
-    
-    # 2. Extract features for ID and OOD data
-    in_features, _ = extract_all_features(model, in_loader, device, 102)
-    out_features, _ = extract_all_features(model, out_loader, device, 10) # assuming CIFAR-10 is OOD
+    in_features, _ = extract_all_features(model, in_loader, device)
+    out_features, _ = extract_all_features(model, out_loader, device)
     
     ood_results = []
     
     for i in range(4):
-        # We use cosine distance to class centers as the OOD score
-        w = classifier_weights[i].to(device) # (num_classes, feature_dim)
+        w = classifier_weights[i].to(device)
         w_norm = F.normalize(w, p=2, dim=1)
         
-        # ID distances
         f_in = F.normalize(in_features[i].to(device), p=2, dim=1)
-        # Cosine similarity to all centers: (N, C)
         sim_in = torch.matmul(f_in, w_norm.T)
-        # Max similarity = min distance to nearest center
         score_in, _ = sim_in.max(dim=1)
         
-        # OOD distances
         f_out = F.normalize(out_features[i].to(device), p=2, dim=1)
         sim_out = torch.matmul(f_out, w_norm.T)
         score_out, _ = sim_out.max(dim=1)
+
+        scores_in_np = score_in.cpu().numpy()
+        scores_out_np = score_out.cpu().numpy()
+
+        # Labels: 1 for ID, 0 for OOD
+        y_true = np.concatenate([np.ones_like(scores_in_np), np.zeros_like(scores_out_np)])
+        y_scores = np.concatenate([scores_in_np, scores_out_np])
+
+        auroc = float(roc_auc_score(y_true, y_scores))
+        fpr95 = compute_fpr95(scores_in_np, scores_out_np)
         
         ood_results.append({
             'layer': i + 1,
-            'id_mean_sim': score_in.mean().item(),
-            'ood_mean_sim': score_out.mean().item(),
-            'gap': score_in.mean().item() - score_out.mean().item()
+            'id_mean_sim': float(score_in.mean().item()),
+            'ood_mean_sim': float(score_out.mean().item()),
+            'gap': float(score_in.mean().item() - score_out.mean().item()),
+            'auroc': auroc,
+            'fpr95': fpr95,
         })
         
     return ood_results
