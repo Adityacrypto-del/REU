@@ -4,7 +4,7 @@
 
 ## Problem Statement
 
-**Title:** *Investigating Neural Collapse Geometry and Its Implications for Early Exiting in Convolutional Neural Networks on Fine-Grained Visual Classification*
+**Title:** *Feature Representation Dynamics and Reliability in Deep Neural Image Classification*
 
 **Statement:**
 

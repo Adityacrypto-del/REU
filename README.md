@@ -1,4 +1,4 @@
-# 🧠 Neural Collapse & Early Exiting in CNNs
+# 🧠 Feature Representation Dynamics and Reliability in Deep Neural Image Classification
 
 **Investigating Neural Collapse Geometry and Its Implications for Early Exiting in Convolutional Neural Networks on Fine-Grained Visual Classification**
 
