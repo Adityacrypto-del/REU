@@ -523,11 +523,44 @@ def main():
                    "• Research Paper Draft: Prepare conference draft summarizing layer-wise representation geometry."])
 
     # =========================================================================
-    # SLIDE 25: Thank You / Q&A
+    # SLIDE 25: References
     # =========================================================================
-    s25 = create_slide_with_layout(prs, "Thank You")
+    s25 = create_slide_with_layout(prs, "References")
     
-    thank_you_box = s25.shapes.add_textbox(Inches(1.0), Inches(1.8), Inches(8.0), Inches(2.5))
+    add_card_text(s25, Inches(0.5), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Primary Foundation Papers",
+                  ["1. Papyan, Han, & Donoho (PNAS 2020)",
+                   "   Prevalence of Neural Collapse during the terminal phase of deep learning training.",
+                   "",
+                   "2. Liu & Qin (CVPR 2025)",
+                   "   Detecting Out-of-Distribution through the Lens of Neural Collapse.",
+                   "",
+                   "3. Hasegawa & Sato (arXiv 2024)",
+                   "   Multiplicative Logit Adjustment for Neural Collapse.",
+                   "",
+                   "4. Wang et al. (CVPR 2024)",
+                   "   Debiased Learning via Neural Collapse."])
+                   
+    add_card_text(s25, Inches(5.2), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Architecture & Related Methodology",
+                  ["5. Munn et al. (arXiv 2024)",
+                   "   Geometric Complexity in Transfer Learning.",
+                   "",
+                   "6. Zeiler & Fergus (ECCV 2014)",
+                   "   Visualizing and understanding convolutional networks.",
+                   "",
+                   "7. Arora et al. (ICLR 2018)",
+                   "   Understanding deep neural networks with Rectified Linear Units.",
+                   "",
+                   "8. Teerapittayanon et al. (ICPR 2016)",
+                   "   BranchyNet: Fast inference in deep neural networks via early exits."])
+
+    # =========================================================================
+    # SLIDE 26: Thank You / Q&A
+    # =========================================================================
+    s26 = create_slide_with_layout(prs, "Thank You")
+    
+    thank_you_box = s26.shapes.add_textbox(Inches(1.0), Inches(1.8), Inches(8.0), Inches(2.5))
     tf = thank_you_box.text_frame
     tf.word_wrap = True
     
