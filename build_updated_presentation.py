@@ -107,6 +107,13 @@ def add_card_text(slide, left, top, width, height, title, bullets, color=RGBColo
         p2.space_after = Pt(4)
         p2.level = 0
 
+def move_slide_to_index(prs, src_index, dest_index):
+    """Moves a slide from src_index to dest_index in the presentation layout."""
+    slide_id_lst = prs.slides._sldIdLst
+    slide_id = slide_id_lst[src_index]
+    slide_id_lst.remove(slide_id)
+    slide_id_lst.insert(dest_index, slide_id)
+
 def main():
     base_template_path = '/Users/adityaarasamangalam/Downloads/CNN_KLETech_Final_Updated (2).pptx'
     if not os.path.exists(base_template_path):
@@ -134,7 +141,7 @@ def main():
     print(f"Loaded presentation template: {base_template_path}")
     print(f"Initial slide count: {len(prs.slides)}")
     
-    # 1. Update Title on Slide 1
+    # Update Title on Slide 1
     new_title = "Feature Representation Dynamics and Reliability in Deep Neural Image Classification"
     slide1 = prs.slides[0]
     for shape in slide1.shapes:
@@ -153,10 +160,119 @@ def main():
         id_list = prs.slides._sldIdLst
         del id_list[13]
         
+    # Remove paper-wise literature review slides (Slides 5, 6, 7, 8)
+    # They are index 4, 5, 6, 7 in the slide list. We delete index 4 four times.
+    print("Removing paper-wise literature review slides...")
+    id_list = prs.slides._sldIdLst
+    for _ in range(4):
+        del id_list[4]
+        
     print(f"Base slides preserved: {len(prs.slides)}")
     
     # =========================================================================
-    # SLIDE 14: Results: Validation Loss & Accuracy (100 Epochs)
+    # CONCEPT-WISE LITERATURE REVIEW SLIDES (To be inserted at index 4, 5, 6, 7)
+    # =========================================================================
+    
+    # --- CONCEPT 1: Hierarchical Feature Progression (Timeline: 2014 - 2018) ---
+    c1 = create_slide_with_layout(prs, "Literature: Hierarchical Feature Progression")
+    add_card_text(c1, Inches(0.5), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Chronological Evolution (2014 - 2018)",
+                  ["• Visual Feature Hierarchy (2014):",
+                   "  Zeiler & Fergus establish that CNNs learn representations incrementally: early layers capture local primitive shapes (edges, color blobs) while deep layers assemble them into high-level semantic shapes.",
+                   "",
+                   "• Piecewise Linear Decision Geometry (2018):",
+                   "  Arora et al. prove that Rectified Linear Unit (ReLU) activations partition the input feature space into exponentially many linear decision regions, with activation sparsity acting as the key indicator of boundary complexity."])
+                   
+    add_card_text(c1, Inches(5.2), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Key Cited Papers",
+                  ["1. Zeiler & Fergus, ECCV 2014",
+                   "  - Title: 'Visualizing and Understanding Convolutional Networks'",
+                   "  - Contribution: Established Deconvnet visualization to reveal hierarchical representation mapping.",
+                   "",
+                   "2. Arora et al., ICLR 2018",
+                   "  - Title: 'Understanding Deep Neural Networks with Rectified Linear Units'",
+                   "  - Contribution: Linked activation sparsity to decision boundary sharpness and generalizability."])
+    
+    # Move Concept 1 to index 4
+    move_slide_to_index(prs, len(prs.slides) - 1, 4)
+
+    # --- CONCEPT 2: Penultimate Geometric Symmetry / Neural Collapse ---
+    c2 = create_slide_with_layout(prs, "Literature: Terminal-Phase Geometric Collapse")
+    add_card_text(c2, Inches(0.5), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Chronological Evolution (2020 - 2021)",
+                  ["• The Penultimate Phase Transition (2020):",
+                   "  Papyan, Han, & Donoho identify 'Neural Collapse' (NC) — a universal geometric phase transition occurring in the final hidden layer during the terminal phase of training.",
+                   "",
+                   "• Simplex ETF Formation:",
+                   "  As training error reaches zero, representations collapse into their class means (NC1) and center themselves to form a Simplex Equiangular Tight Frame (NC2), where class centers maximize mutual distance.",
+                   "",
+                   "• Duality and Decision Equivalence:",
+                   "  Classifier weights align with class means (NC3), simplifying inference to a Nearest-Class-Center (NCC) Euclidean distance rule (NC4)."])
+                   
+    add_card_text(c2, Inches(5.2), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Key Cited Papers",
+                  ["1. Papyan, Han, & Donoho, PNAS 2020",
+                   "  - Title: 'Prevalence of Neural Collapse during the terminal phase of deep learning training'",
+                   "  - Contribution: Discovered and mathematically formalized the NC1–NC4 properties.",
+                   "",
+                   "2. Munn et al., arXiv 2024",
+                   "  - Title: 'Geometric Complexity in Transfer Learning'",
+                   "  - Contribution: Established that dataset complexity limits collapse completeness."])
+    
+    # Move Concept 2 to index 5
+    move_slide_to_index(prs, len(prs.slides) - 1, 5)
+
+    # --- CONCEPT 3: Representation Calibration & Boundary Distortion ---
+    c3 = create_slide_with_layout(prs, "Literature: Representation Calibration & Boundary Distortion")
+    add_card_text(c3, Inches(0.5), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Chronological Evolution (2024)",
+                  ["• Class Imbalance Distortion (2024):",
+                   "  Hasegawa & Sato show that training on skewed datasets pulls class means closer and distorts simplex symmetry, biasing decisions heavily toward majority classes.",
+                   "",
+                   "• Multiplicative Logit Adjustment (MLA):",
+                   "  Introduced as a post-hoc calibration technique that scales logits by priors to restore boundary symmetry without retraining.",
+                   "",
+                   "• Spurious Shortcut Learning (2024):",
+                   "  Wang et al. demonstrate that shortcut correlations (background bias) degrade simplex symmetry. Debiasing representations is necessary to recover clean collapse geometry."])
+                   
+    add_card_text(c3, Inches(5.2), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Key Cited Papers",
+                  ["1. Hasegawa & Sato, arXiv 2024",
+                   "  - Title: 'Multiplicative Logit Adjustment for Neural Collapse'",
+                   "  - Contribution: Proposed post-hoc logit scaling to repair imbalance distortion.",
+                   "",
+                   "2. Wang et al., CVPR 2024",
+                   "  - Title: 'Debiased Learning via Neural Collapse'",
+                   "  - Contribution: Mapped shortcut learning to representation asymmetry."])
+    
+    # Move Concept 3 to index 6
+    move_slide_to_index(prs, len(prs.slides) - 1, 6)
+
+    # --- CONCEPT 4: Geometry-Based Generalization & Robustness ---
+    c4 = create_slide_with_layout(prs, "Literature: Representation-Based Robustness & OOD")
+    add_card_text(c4, Inches(0.5), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Chronological Evolution (2019 - 2025)",
+                  ["• Generalization Sensitivity under Shift (2019):",
+                   "  Recht et al. demonstrate that minor distribution shifts drop classifier accuracy, revealing that representations easily overfit to dataset-specific biases.",
+                   "",
+                   "• Distance-Based OOD Isolation (2025):",
+                   "  Liu & Qin leverage Neural Collapse geometry for Out-of-Distribution (OOD) detection. Since in-distribution samples cluster tightly around simplex means, OOD inputs fall into the low-density spaces between centers, enabling clean distance-based separation."])
+                   
+    add_card_text(c4, Inches(5.2), Inches(1.3), Inches(4.3), Inches(3.8),
+                  "Key Cited Papers",
+                  ["1. Recht et al., ICML 2019",
+                   "  - Title: 'Do ImageNet Classifiers Generalize to ImageNet?'",
+                   "  - Contribution: Discovered the generalization gap under minor distribution shift.",
+                   "",
+                   "2. Liu & Qin, CVPR 2025",
+                   "  - Title: 'Detecting Out-of-Distribution through the Lens of Neural Collapse'",
+                   "  - Contribution: Proposed distance-to-centers OOD separation utilizing NC geometry."])
+    
+    # Move Concept 4 to index 7
+    move_slide_to_index(prs, len(prs.slides) - 1, 7)
+
+    # =========================================================================
+    # RESULTS SLIDES
     # =========================================================================
     s14 = create_slide_with_layout(prs, "Results: Training & Validation Accuracy (100 Epochs)")
     loss_path = os.path.join(plot_dir, 'loss_curve.png')
