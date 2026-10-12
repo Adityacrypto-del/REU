@@ -3,8 +3,10 @@ data/
 src/data/
 
 # ===== Model checkpoints & weight snapshots (~17GB) =====
-src/results/checkpoints/*.pt
-src/results/checkpoints/*.npz
+*.pt
+*.npz
+src/results/**/checkpoints/*.pt
+src/results/**/checkpoints/*.npz
 
 # ===== Large aggregated weight arrays (~2GB) =====
 src/results/all_weights.npy

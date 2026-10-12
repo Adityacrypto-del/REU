@@ -331,12 +331,12 @@ def plot_geometric_complexity_comparison(flowers_history, cifar_history, save_di
     Paper 4 (Munn et al. 2024): Geometric Complexity in Transfer Learning.
     Compares NC1 and NC4 evolution between Flowers-102 (high complexity, 102 classes)
     and CIFAR-10 (low complexity, 10 classes).
+
+    Generates two figures:
+    1. Layer-wise NC1/NC4 evolution grid (2 rows x 4 columns)
+    2. Summary bar chart comparing final-epoch metrics across all layers
     """
     os.makedirs(save_dir, exist_ok=True)
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    fig.suptitle('Geometric Complexity Impact on Neural Collapse (Flowers-102 vs CIFAR-10)',
-                 fontsize=14, fontweight='bold')
 
     fl_nc = flowers_history.get('nc_metrics', [])
     cf_nc = cifar_history.get('nc_metrics', [])
@@ -346,33 +346,98 @@ def plot_geometric_complexity_comparison(flowers_history, cifar_history, save_di
         return
 
     fl_epochs = [rec['epoch'] for rec in fl_nc]
-    fl_nc1_l4 = [rec['layers'][3]['nc1'] for rec in fl_nc]
-    fl_nc4_l4 = [rec['layers'][3]['nc4'] for rec in fl_nc]
-
     cf_epochs = [rec['epoch'] for rec in cf_nc]
-    cf_nc1_l4 = [rec['layers'][3]['nc1'] for rec in cf_nc]
-    cf_nc4_l4 = [rec['layers'][3]['nc4'] for rec in cf_nc]
 
-    # NC1 comparison
+    # ---- Figure 1: Layer-by-layer NC1 & NC4 evolution (2x4 grid) ----
+    fig, axes = plt.subplots(2, 4, figsize=(22, 10))
+    fig.suptitle('Geometric Complexity Impact on Neural Collapse — All Layers\n'
+                 'Flowers-102 (102 classes, high complexity) vs CIFAR-10 (10 classes, low complexity)',
+                 fontsize=15, fontweight='bold', y=1.03)
+
+    for layer_idx in range(4):
+        # NC1 row (top)
+        fl_nc1 = [rec['layers'][layer_idx]['nc1'] for rec in fl_nc]
+        cf_nc1 = [rec['layers'][layer_idx]['nc1'] for rec in cf_nc]
+
+        ax = axes[0, layer_idx]
+        ax.plot(fl_epochs, fl_nc1, '-', color='#e74c3c', label='Flowers-102', linewidth=2, alpha=0.85)
+        ax.plot(cf_epochs, cf_nc1, '-', color='#3498db', label='CIFAR-10', linewidth=2, alpha=0.85)
+        dim = [64, 128, 256, 512][layer_idx]
+        ax.set_title(f'Layer {layer_idx+1} ({dim}-d)', fontsize=12, fontweight='bold')
+        ax.set_yscale('log')
+        ax.grid(True, alpha=0.3)
+        if layer_idx == 0:
+            ax.set_ylabel('NC1: Tr(Σ_W)/Tr(Σ_B)  ↓ better', fontsize=10)
+        ax.legend(fontsize=8)
+
+        # NC4 row (bottom)
+        fl_nc4 = [rec['layers'][layer_idx]['nc4'] for rec in fl_nc]
+        cf_nc4 = [rec['layers'][layer_idx]['nc4'] for rec in cf_nc]
+
+        ax = axes[1, layer_idx]
+        ax.plot(fl_epochs, fl_nc4, '-', color='#e74c3c', label='Flowers-102', linewidth=2, alpha=0.85)
+        ax.plot(cf_epochs, cf_nc4, '-', color='#3498db', label='CIFAR-10', linewidth=2, alpha=0.85)
+        ax.set_xlabel('Epoch')
+        ax.grid(True, alpha=0.3)
+        if layer_idx == 0:
+            ax.set_ylabel('NC4: NCC Accuracy  ↑ better', fontsize=10)
+        ax.legend(fontsize=8)
+
+    plt.tight_layout()
+    path = os.path.join(save_dir, 'geometric_complexity_all_layers.png')
+    plt.savefig(path)
+    plt.close()
+    print(f"  Saved: {path}")
+
+    # ---- Figure 2: Summary bar chart (final epoch metrics) ----
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig.suptitle('Final-Epoch Neural Collapse: Flowers-102 vs CIFAR-10',
+                 fontsize=14, fontweight='bold')
+
+    layers = ['L1\n(64-d)', 'L2\n(128-d)', 'L3\n(256-d)', 'L4\n(512-d)']
+    x = np.arange(4)
+    width = 0.35
+
+    # Final NC1 per layer
+    fl_nc1_final = [fl_nc[-1]['layers'][l]['nc1'] for l in range(4)]
+    cf_nc1_final = [cf_nc[-1]['layers'][l]['nc1'] for l in range(4)]
+
     ax = axes[0]
-    ax.plot(fl_epochs, fl_nc1_l4, 'o-', color='#e74c3c', label='Flowers-102 (Complex, 102 classes)', linewidth=2)
-    ax.plot(cf_epochs, cf_nc1_l4, 's-', color='#3498db', label='CIFAR-10 (Simple, 10 classes)', linewidth=2)
-    ax.set_title('NC1 Within-Class Variability (Layer 4)')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Tr(Sw) / Tr(Sb) (log scale)')
-    ax.set_yscale('log')
+    bars1 = ax.bar(x - width/2, fl_nc1_final, width, label='Flowers-102', color='#e74c3c', alpha=0.8)
+    bars2 = ax.bar(x + width/2, cf_nc1_final, width, label='CIFAR-10', color='#3498db', alpha=0.8)
+    ax.set_ylabel('NC1 (↓ better)')
+    ax.set_title('Within-Class Variability Collapse')
+    ax.set_xticks(x)
+    ax.set_xticklabels(layers)
     ax.legend()
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.3, axis='y')
+    # Add value labels on bars
+    for bar in bars1:
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.01,
+                f'{bar.get_height():.3f}', ha='center', va='bottom', fontsize=8)
+    for bar in bars2:
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.01,
+                f'{bar.get_height():.3f}', ha='center', va='bottom', fontsize=8)
 
-    # NC4 comparison
+    # Final NC4 per layer
+    fl_nc4_final = [fl_nc[-1]['layers'][l]['nc4'] for l in range(4)]
+    cf_nc4_final = [cf_nc[-1]['layers'][l]['nc4'] for l in range(4)]
+
     ax = axes[1]
-    ax.plot(fl_epochs, fl_nc4_l4, 'o-', color='#e74c3c', label='Flowers-102 (Complex, 102 classes)', linewidth=2)
-    ax.plot(cf_epochs, cf_nc4_l4, 's-', color='#3498db', label='CIFAR-10 (Simple, 10 classes)', linewidth=2)
-    ax.set_title('NC4 Nearest-Class-Center Accuracy (Layer 4)')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('NCC Accuracy')
+    bars1 = ax.bar(x - width/2, fl_nc4_final, width, label='Flowers-102', color='#e74c3c', alpha=0.8)
+    bars2 = ax.bar(x + width/2, cf_nc4_final, width, label='CIFAR-10', color='#3498db', alpha=0.8)
+    ax.set_ylabel('NC4 NCC Accuracy (↑ better)')
+    ax.set_title('Nearest-Class-Center Accuracy')
+    ax.set_xticks(x)
+    ax.set_xticklabels(layers)
     ax.legend()
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.3, axis='y')
+    for bar in bars1:
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.005,
+                f'{bar.get_height():.3f}', ha='center', va='bottom', fontsize=8)
+    for bar in bars2:
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.005,
+                f'{bar.get_height():.3f}', ha='center', va='bottom', fontsize=8)
 
     plt.tight_layout()
     path = os.path.join(save_dir, 'geometric_complexity_comparison.png')
