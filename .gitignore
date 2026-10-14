@@ -8,8 +8,15 @@ src/data/
 src/results/**/checkpoints/*.pt
 src/results/**/checkpoints/*.npz
 
-# ===== Large aggregated weight arrays (~2GB) =====
-src/results/all_weights.npy
+# ===== Large aggregated arrays (~2-3GB) =====
+*all_weights.npy
+*all_ce_losses.npy
+*all_correct_preds.npy
+*all_kde_densities.npy
+**/all_weights.npy
+**/all_ce_losses.npy
+**/all_correct_preds.npy
+**/all_kde_densities.npy
 
 # ===== Python cache =====
 __pycache__/

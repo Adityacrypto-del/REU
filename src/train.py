@@ -331,24 +331,30 @@ def main():
         plt.savefig(os.path.join(RESULTS_DIR, f'weight_evolution_label_{label}.png'))
         plt.close()
 
-    for layer in range(4):
-        plt.figure()
-        for epoch_idx in range(len(all_kde_densities)):
-            epoch_num = start_epoch + epoch_idx
-            plt.hist(
-                all_kde_densities[epoch_idx][layer],
-                bins=50,
-                alpha=0.4,
-                label=f'Epoch {epoch_num}',
-                density=True,
-            )
-        plt.xlabel('Density Value')
-        plt.ylabel('Frequency')
-        plt.title(f'Probability Distribution (KDE) for Layer {layer+1}')
-        plt.legend(fontsize='small')
-        plt.tight_layout()
-        plt.savefig(os.path.join(RESULTS_DIR, f'prob_dist_layer_{layer+1}.png'))
-        plt.close()
+    try:
+        for layer in range(4):
+            plt.figure()
+            for epoch_idx in range(len(all_kde_densities)):
+                epoch_num = start_epoch + epoch_idx
+                densities = all_kde_densities[epoch_idx][layer]
+                if densities is not None and len(densities) > 0 and np.all(np.isfinite(densities)):
+                    plt.hist(
+                        densities,
+                        bins=50,
+                        alpha=0.4,
+                        label=f'Epoch {epoch_num}',
+                        density=True,
+                    )
+            plt.xlabel('Density Value')
+            plt.ylabel('Frequency')
+            plt.title(f'Probability Distribution (KDE) for Layer {layer+1}')
+            plt.legend(fontsize='small')
+            plt.tight_layout()
+            plt.savefig(os.path.join(RESULTS_DIR, f'prob_dist_layer_{layer+1}.png'))
+            plt.close()
+    except Exception as e:
+        print(f"  Note: KDE distribution plot skipped ({e})")
+
 
     save_checkpoint(
         model,
